@@ -1,0 +1,59 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build Folders
+bin/
+obj/
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Rider
+.idea/
+
+# Rider / Resharper
+*.DotSettings.user
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio temp files
+*.tmp
+*.log
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Node (si usas Node para alguna parte del proyecto)
+node_modules/
+
+# JetBrains
+*.iml
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Others
+*.bak
+*.backup
+*.orig
+
+# JSON / configuración de datos
+# Si no quieres subir datos sensibles (como groserias.json inicial podría subirse, pero si después agregas audios locales, se recomienda ignorarlos)
+audios/
+imagenes/
