@@ -13,6 +13,5 @@ namespace GroseriasFun
         public string En { get; set; }
         public string Fr { get; set; }
         // Futuro: Descripcion, Imagen, Audio
-
     }
 }
