@@ -7,64 +7,33 @@ using GroseriasFun;
 
 class Program
 {
+    // Variables globales para que Menu() pueda acceder
+    static List<Groseria> groserias;
+    static string filePath;
+    static JsonSerializerOptions options;
+
     static void Main()
     {
-        // Nombre del archivo JSON que queremos leer
         string fileName = "groserias.json";
+        filePath = Path.Combine(AppContext.BaseDirectory, fileName);
 
-        // Ruta completa al archivo: combina la carpeta de la app (bin/Debug/net8.0)
-        // con el nombre del archivo
-        string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
+        options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-        // Mostrar en consola dónde está corriendo la app
-        Console.WriteLine($"App base dir: {AppContext.BaseDirectory}");
-        Console.WriteLine($"Buscando: {filePath}");
-
-        // Verificar si el archivo existe en la carpeta de salida
+        // Cargar JSON
         if (!File.Exists(filePath))
         {
             Console.WriteLine("¡No se encontró el archivo!");
             Console.WriteLine("Archivos en la carpeta de salida:");
-
-            // Listar todos los archivos que sí existen en la carpeta de salida
             foreach (var f in Directory.GetFiles(AppContext.BaseDirectory))
                 Console.WriteLine(" - " + Path.GetFileName(f));
-
-            Console.WriteLine("\nAsegúrate de que 'groserias.json' esté en el proyecto y que tenga la opción 'Copy to Output Directory' = 'Copy if newer'.");
-            Console.ReadKey(); // Pausa para que el usuario lea el mensaje
-            return; // Sale del programa
-        }
-
-        // Leer todo el archivo JSON como texto en UTF-8
-        string json = File.ReadAllText(filePath, Encoding.UTF8);
-
-        // Mostrar el contenido crudo del JSON para depuración
-        Console.WriteLine("\n--- Contenido del JSON leído ---");
-        Console.WriteLine(json);
-        Console.WriteLine("--- fin contenido ---\n");
-
-        // Configuración del deserializador: no distinguir mayúsculas/minúsculas
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-        List<Groseria> groserias = null;
-        try
-        {
-            // Convertir el texto JSON en una lista de objetos Groseria
-            groserias = JsonSerializer.Deserialize<List<Groseria>>(json, options);
-        }
-        catch (Exception ex)
-        {
-            // Si ocurre un error al deserializar, lo mostramos
-            Console.WriteLine("Error al deserializar JSON:");
-            Console.WriteLine(ex);
+            Console.WriteLine("\nAsegúrate de que 'groserias.json' esté en el proyecto y 'Copy to Output Directory' = 'Copy if newer'.");
             Console.ReadKey();
             return;
         }
 
-        // Mostrar cuántos elementos se cargaron
-        Console.WriteLine($"\nTotal deserializado: {groserias?.Count ?? 0}");
+        string json = File.ReadAllText(filePath, Encoding.UTF8);
+        groserias = JsonSerializer.Deserialize<List<Groseria>>(json, options);
 
-        // Validar que la lista no esté vacía
         if (groserias == null || groserias.Count == 0)
         {
             Console.WriteLine("La lista está vacía o no se pudieron mapear las propiedades.");
@@ -72,13 +41,104 @@ class Program
             return;
         }
 
-        // Recorrer la lista e imprimir cada grosería con sus traducciones
-        foreach (var g in groserias)
+        // Mostrar resumen inicial
+        Console.WriteLine($"\nTotal de groserías cargadas: {groserias.Count}");
+        Console.WriteLine("\nPresiona cualquier tecla para entrar al menú...");
+        Console.ReadKey();
+
+        // Invocar menú interactivo
+        Menu();
+    }
+
+    public static void Menu()
+    {
+        bool salir = false;
+        while (!salir)
         {
-            Console.WriteLine($"ES: {g?.Es ?? "<nulo>"} | EN: {g?.En ?? "<nulo>"} | FR: {g?.Fr ?? "<nulo>"}");
+            Console.Clear();
+            Console.WriteLine("=== Groserías Fun ===");
+            Console.WriteLine("1) Listar todas");
+            Console.WriteLine("2) Buscar traducción");
+            Console.WriteLine("3) Agregar grosería");
+            Console.WriteLine("4) Salir");
+            Console.Write("Elige opción: ");
+            string opcion = Console.ReadLine();
+
+            switch (opcion)
+            {
+                case "1":
+                    ListarGroserias();
+                    break;
+                case "2":
+                    BuscarTraduccion();
+                    break;
+                case "3":
+                    AgregarGroseria();
+                    break;
+                case "4":
+                    salir = true;
+                    break;
+                default:
+                    Console.WriteLine("Opción inválida. Presiona cualquier tecla...");
+                    Console.ReadKey();
+                    break;
+            }
+        }
+    }
+
+    static void ListarGroserias()
+    {
+        foreach (var g in groserias)
+            Console.WriteLine($"ES: {g.Es} | EN: {g.En} | FR: {g.Fr}");
+
+        Console.WriteLine("\nPresiona cualquier tecla para volver al menú...");
+        Console.ReadKey();
+    }
+
+    static void BuscarTraduccion()
+    {
+        Console.Write("\nEscribe la grosería a buscar: ");
+        string input = Console.ReadLine();
+
+        Console.WriteLine("Selecciona idioma: (1) EN (2) FR");
+        string idioma = Console.ReadLine();
+
+        var encontrada = groserias
+            .FirstOrDefault(g => g.Es.Contains(input, StringComparison.OrdinalIgnoreCase));
+
+        if (encontrada != null)
+        {
+            string resultado = idioma == "2" ? encontrada.Fr : encontrada.En;
+            Console.WriteLine($"Traducción: {resultado}");
+        }
+        else
+        {
+            Console.WriteLine("No encontrada en el diccionario.");
         }
 
-        Console.WriteLine("\nFin. Presiona una tecla para salir.");
-        Console.ReadKey(); // Espera que el usuario presione algo antes de cerrar
+        Console.WriteLine("\nPresiona cualquier tecla para volver al menú...");
+        Console.ReadKey();
+    }
+
+    static void AgregarGroseria()
+    {
+        Console.Write("\nEscribe la grosería en español: ");
+        string es = Console.ReadLine();
+
+        Console.Write("Traducción EN: ");
+        string en = Console.ReadLine();
+
+        Console.Write("Traducción FR: ");
+        string fr = Console.ReadLine();
+
+        int nuevoId = groserias.Count > 0 ? groserias.Max(g => g.Id) + 1 : 1;
+
+        var nueva = new Groseria { Id = nuevoId, Es = es, En = en, Fr = fr };
+        groserias.Add(nueva);
+
+        File.WriteAllText(filePath, JsonSerializer.Serialize(groserias, options));
+
+        Console.WriteLine("Grosería agregada correctamente. Presiona cualquier tecla...");
+        Console.ReadKey();
     }
 }
