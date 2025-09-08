@@ -20,6 +20,7 @@ class Program
         options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         // Cargar JSON
+        //no hay archivo JSON, esto se muestra en consola
         if (!File.Exists(filePath))
         {
             Console.WriteLine("¡No se encontró el archivo!");
@@ -31,9 +32,11 @@ class Program
             return;
         }
 
+        //aquí es en donde se toman los datos del archivo JSON
         string json = File.ReadAllText(filePath, Encoding.UTF8);
         groserias = JsonSerializer.Deserialize<List<Groseria>>(json, options);
 
+        //para una lista vac{ia
         if (groserias == null || groserias.Count == 0)
         {
             Console.WriteLine("La lista está vacía o no se pudieron mapear las propiedades.");
